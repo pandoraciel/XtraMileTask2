@@ -1,0 +1,8 @@
+{
+  "runtimeOptions": {
+    "additionalProbingPaths": [
+      "C:\\Users\\pandoraciel\\.dotnet\\store\\|arch|\\|tfm|",
+      "C:\\Users\\pandoraciel\\.nuget\\packages"
+    ]
+  }
+}

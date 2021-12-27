@@ -1,0 +1,171 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <label>Country</label>
+                    <select class="custom-select" id="country">
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label>Region</label>
+                    <select class="custom-select" id="region">
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label>City</label>
+                    <select class="custom-select" id="city">
+                    </select>
+                </div>
+            </div>
+        </div>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Location</th>
+                    <th>Time(s)</th>
+                    <th>Wind(m/s)</th>
+                    <th>Visibility(m)</th>
+                    <th>Sky Condition</th>
+                    <th>Temp(F)</th>
+                    <th>Temp(C)</th>
+                    <th>Dew Point(F)</th>
+                    <th>Relative Humidity(%)</th>
+                    <th>Pressure(hPa)</th>
+                </tr>
+            </thead>
+            <tbody id="data">
+                <tr>
+                    <td colspan="10">Please select a city to show current weather data!</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: '/api/crc',
+                type: 'GET',
+                dataType: 'json',
+                success: function (result) {
+                    $('#country').empty();
+                    var dt = '<option value="">Choose a country!!</option>';
+                    $.each(result, function (idx, val) {
+                        dt += '<option value="' + val.id + '">' + val.name + '</option>';
+                    });
+                    $('#country').append(dt);
+                }
+            });
+
+            $(document).on('change', '#country', function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '/api/crc/region/' + $('#country').val(),
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (result) {
+                        $('#region').empty();
+                        var dt = '<option value="">Choose a region!!</option>';
+                        $.each(result, function (idx, val) {
+                            dt += '<option value="' + val.id + '">' + val.name + '</option>';
+                        });
+                        $('#region').append(dt);
+                    }
+                });
+            });
+
+            $(document).on('change', '#region', function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '/api/crc/city/' + $('#region').val(),
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (result) {
+                        $('#city').empty();
+                        var dt = '<option value="">Choose a city!!</option>';
+                        $.each(result, function (idx, val) {
+                            dt += '<option value="' + val.name + '">' + val.name + '</option>';
+                        });
+                        $('#city').append(dt);
+                    }
+                });
+            });
+
+            $(document).on('change', '#city', function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: 'https://api.openweathermap.org/data/2.5/weather?q=' + $('#city').val() +'&units=imperial&appid=7a96b60da9293dfa920765d2ab0be16f',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (result) {
+                        console.log(result);
+                        $('#data').empty();
+                        var celcius = getCelcius(result.main.temp);
+                        var dew = getDew(result.main.temp, result.main.humidity)
+                        var dt = '';
+                        dt += '<tr>';
+                        dt += '<td>' + result.name + '</td>';
+                        dt += '<td>' + result.dt + '</td>';
+                        dt += '<td>' + result.wind.speed + '</td>';
+                        dt += '<td>' + result.visibility + '</td>';
+                        dt += '<td>' + result.weather[0].description + '</td>';
+                        dt += '<td>' + result.main.temp + '</td>';
+                        dt += '<td>' + celcius + '</td>';
+                        dt += '<td>' + dew + '</td>';
+                        dt += '<td>' + result.main.humidity + '</td>';
+                        dt += '<td>' + result.main.pressure + '</td>';
+                        dt += '</tr>';
+                            
+                        $('#data').append(dt);
+                        
+                    },
+                    error: function (jqXHR) {
+                        //alert("Data not found for city : " + $('#city').val());
+                        $('#data').empty();
+                        var dt = '';
+                        dt += '<tr><td colspan=10>No Data Found</td></tr>';
+                        $('#data').append(dt);
+                    }
+                });
+            });
+        });
+
+        function getCelcius(F) {
+            var res = $.ajax({
+                url: '/api/crc/ftc/' + F,
+                type: 'GET',
+                dataType: 'json',
+                async: false,
+                success: function (result) {
+                }
+            });
+            return getFormat(res.responseText);
+            
+        }
+
+        function getDew(F, H) {
+            var res = $.ajax({
+                url: '/api/crc/dew/' + F +'/' + H,
+                type: 'GET',
+                dataType: 'json',
+                async: false,
+                success: function (result) {
+                }
+            });
+            return getFormat(res.responseText);
+
+        }
+
+        function getFormat(f) {
+            return f.replace(',', '.');
+        }
+    </script>
+}
