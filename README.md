@@ -10,3 +10,8 @@
 - Run Unit testing, View>Test Explorer, and running test case
 
 XtraMileTask2 is repository dedicated for technical test only.
+
+## Disclaimer
+
+- First time use unit testing, so far base on my experience always use manual testing for every project i did
+- Projects only for internal client purpose, so the app not use api, if want to communicate with other app, use dblink to get data or FGW(file gateway) we use internal custom framework from client
